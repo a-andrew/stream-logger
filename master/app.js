@@ -2,16 +2,16 @@
 
 /******************************************************/
 global._ = require('lodash');
-global.cluster = require('cluster');
 /******************************************************/
+var Cluster = require('./classes/CCluster').getInstance();
 var Master = require('./classes/CMaster').getInstance();
 var Worker = require('./classes/CWorker').getInstance();
 /******************************************************/
 
-if (cluster.isMaster) {
+if (Cluster.isMaster) {
     Master.addListeners();
     Master.fork();
 }
-else if (cluster.isWorker) {
+else if (Cluster.isWorker) {
     Worker.introducing();
 }

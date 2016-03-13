@@ -1,7 +1,10 @@
 'use strict';
 
+var CCluster = require('./CCluster');
+
 class CWorker {
     constructor() {
+        this.Cluster = CCluster.getInstance();
     }
 
     static getInstance() {
@@ -12,8 +15,8 @@ class CWorker {
     }
 
     introducing() {
-        console.log(`Hello I\'m a worker #${cluster.worker.id}`);
-        console.log(`Process ID #${cluster.worker.process.pid}`);
+        console.log(`Hello I\'m a worker #${this.Cluster.worker().id}`);
+        console.log(`Process ID #${this.Cluster.worker().process.pid}`);
     }
 }
 
