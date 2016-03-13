@@ -1,6 +1,8 @@
 'use strict';
 
 var os = require('os');
+var readline = require('readline');
+var EE = new (require('events')).EventEmitter();
 
 class CMaster {
     constructor() {
@@ -15,8 +17,10 @@ class CMaster {
     }
 
     addListeners() {
+        let workerCount = 0;
         cluster.on('online', (worker) => {
             console.log(`worker #${worker.id} is online`);
+            ++workerCount == this.coresNumber && EE.emit('workersReady');
         });
 
         cluster.on('exit', (worker, code, signal) => {
@@ -24,13 +28,19 @@ class CMaster {
             console.log('Is restarting...');
             cluster.fork();
         });
+
+        EE.once('workersReady', this.startRead);
     }
 
     fork(quantity) {
-        quantity = quantity || this.coresNumber;
-        _.forEach([quantity], () => {
+        this.coresNumber = quantity || this.coresNumber;
+        _.forEach(new Array(this.coresNumber), () => {
             cluster.fork()
         });
+    }
+
+    startRead(){
+        console.log('Start reading');
     }
 }
 
