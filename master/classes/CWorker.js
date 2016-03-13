@@ -15,8 +15,8 @@ class CWorker {
     }
 
     introducing() {
-        console.log(`Hello I\'m a worker #${this.Cluster.worker().id}`);
-        console.log(`Process ID #${this.Cluster.worker().process.pid}`);
+        console.log(`Hello I\'m a worker #${this.Cluster.worker.id}`);
+        console.log(`Process ID #${this.Cluster.worker.process.pid}`);
     }
 }
 

@@ -29,14 +29,14 @@ class CMaster {
         this.Cluster.addListener('exit', (worker, code, signal) => {
             console.log(`worker #${worker.id} died with code #${code} and signal #${signal}`);
             console.log('Is restarting...');
-            //this.Cluster.fork();
+            this.Cluster.fork();
         });
 
         EE.once('workersReady', this.startRead);
     }
 
     fork(quantity) {
-        this.coresNumber = 1 || this.coresNumber;
+        this.coresNumber = 4 || this.coresNumber;
 
         this.Cluster.setupMaster({silent: true});
         _.forEach(new Array(this.coresNumber), () => {
