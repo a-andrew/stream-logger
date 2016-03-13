@@ -8,10 +8,10 @@ var Master = require('./classes/CMaster').getInstance();
 var Worker = require('./classes/CWorker').getInstance();
 /******************************************************/
 
-if (Cluster.isMaster) {
+if (Cluster.isMaster()) {
     Master.addListeners();
     Master.fork();
 }
-else if (Cluster.isWorker) {
+else if (Cluster.isWorker()) {
     Worker.introducing();
 }
