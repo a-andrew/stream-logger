@@ -20,6 +20,8 @@
   "author": "a-andrew",
   "license": "ISC",
   "dependencies": {
+    "colors": "^1.1.2",
+    "fs": "0.0.2",
     "lodash": "^4.6.1"
   }
 }

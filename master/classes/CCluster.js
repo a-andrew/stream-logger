@@ -43,6 +43,10 @@ class CCluster {
     get worker(){
         return this.instance.worker;
     }
+
+    get workers(){
+        return this.instance.workers;
+    }
 }
 
 module.exports = CCluster;

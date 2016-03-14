@@ -1,6 +1,7 @@
 'use strict';
 
 var CCluster = require('./CCluster');
+var fs = require('fs');
 
 class CWorker {
     constructor() {
@@ -14,9 +15,22 @@ class CWorker {
         return this.instance;
     }
 
+    createWriteStream(processId){
+        this.writeStream = fs.createWriteStream(`./master/outputs/${processId}-logs.log`, {flaw: 'w'});
+    }
+
+    processStream() {
+        this.createWriteStream(this.Cluster.worker.process.pid);
+        process.stdin.pipe(this.writeStream);
+
+        this.writeStream.on('finish', () => function(){
+            process.send('done');
+        });
+    }
+
     introducing() {
-        console.log(`Hello I\'m a worker #${this.Cluster.worker.id}`);
-        console.log(`Process ID #${this.Cluster.worker.process.pid}`);
+        console.log(`Hello I\'m a worker #${this.Cluster.worker.id}`.green);
+        console.log(`Process ID #${this.Cluster.worker.process.pid}`.green);
     }
 }
 

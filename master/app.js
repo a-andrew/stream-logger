@@ -13,5 +13,6 @@ if (Cluster.isMaster()) {
     Master.fork();
 }
 else if (Cluster.isWorker()) {
-    Worker.introducing();
+    //Worker.introducing();
+    Worker.processStream();
 }
