@@ -47,6 +47,10 @@ class CCluster {
     get workers(){
         return this.instance.workers;
     }
+
+    get workersCount(){
+        return _.keys(this.instance.workers).length;
+    }
 }
 
 module.exports = CCluster;

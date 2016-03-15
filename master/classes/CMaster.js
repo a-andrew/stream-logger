@@ -11,9 +11,9 @@ require('colors');
 class CMaster {
     constructor() {
         this.Cluster = CCluster.getInstance();
-        this.coresNumber = os.cpus().length;
+        this.workersCount = os.cpus().length;
         this.inputFilePath = './master/inputs/logs.log';
-        this.streams = [];
+        this.STBridges = [];
     }
 
     static getInstance() {
@@ -24,46 +24,51 @@ class CMaster {
     }
 
     addListeners() {
-        let workerCount = 0;
-
+        let workerNumber = 0;
         this.Cluster.addListener('online', (worker) => {
             console.log(`worker #${worker.id} is online`.rainbow);
 
-            worker.on('message', (message) => {
-                if (message == 'done') {
-                    worker.kill();
-                    --workerCount;
-                }
+            this.initWorker(worker);
 
-                !workerCount && console.log('Workers are done');
-            });
-            this.createReadStream(worker);
-            ++workerCount == this.coresNumber && EE.emit('workersReady');
+            !(this.workersCount - ++workerNumber) && EE.emit('workersReady');
         });
 
         this.Cluster.addListener('exit', (worker, code, signal) => {
-            console.log(`worker #${worker.id} died with code #${code} and signal #${signal}`);
-            console.log('Is restarting...');
-            this.Cluster.fork();
+            console.log(`worker #${worker.id} died with code #${code} and signal #${signal}`.red.bold);
+
+            if (!worker.suicide) {
+                console.log('Is restarting...');
+                this.Cluster.fork();
+            }
+
+            !this.Cluster.workersCount && (process.exit());
         });
 
         EE.once('workersReady', _.partialRight(this.startRead, this));
+    }
+
+    initWorker(worker) {
+        worker.on('message', (message) => {
+            message == 'done' && worker.kill();
+        });
+
+        this.createReadStream(worker);
     }
 
     createReadStream(worker) {
         let stream = new Readable();
         stream._read = _.noop;
         stream.pipe(worker.process.stdin);
-        this.streams.push(stream);
+        this.STBridges.push(stream);
     }
 
     fork(quantity) {
-        this.coresNumber = quantity || this.coresNumber;
+        this.workersCount = quantity || this.workersCount;
         this.Cluster.setupMaster({
             silent: true
         });
 
-        _.forEach(new Array(this.coresNumber), () => {
+        _.forEach(new Array(this.workersCount), () => {
             this.Cluster.fork()
         });
     }
@@ -78,7 +83,8 @@ class CMaster {
 
         let streamNumber = 0;
         self.reader.on('line', (line) => {
-            self.streams[streamNumber].push(`${line}\n`);
+            self.STBridges[streamNumber++].push(`${line}\n`);
+            !(self.Cluster.workersCount - streamNumber) && (streamNumber = 0);
         });
 
         self.reader.on('close', () => {
@@ -93,8 +99,8 @@ class CMaster {
     }
 
     ENDBroadcast() {
-        _.forEach(this.streams, (stream) => {
-            stream.push(null);
+        _.forEach(this.STBridges, (bridge) => {
+            bridge.push(null);
         });
     }
 }
