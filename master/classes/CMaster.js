@@ -4,6 +4,7 @@ var os = require('os');
 var CCluster = require('./CCluster');
 var readline = require('readline');
 var Readable = require('stream').Readable;
+var randomstring = require("randomstring");
 var fs = require('fs');
 var EE = new (require('events')).EventEmitter();
 require('colors');
@@ -34,9 +35,8 @@ class CMaster {
         });
 
         this.Cluster.addListener('exit', (worker, code, signal) => {
-            console.log(`worker #${worker.id} died with code #${code} and signal #${signal}`.red.bold);
-
             if (!worker.suicide) {
+                console.log(`worker #${worker.id} died with code #${code} and signal #${signal}`.red.bold);
                 console.log('Is restarting...');
                 this.Cluster.fork();
             }
@@ -45,10 +45,12 @@ class CMaster {
         });
 
         EE.once('workersReady', _.partialRight(this.startRead, this));
+        //EE.once('workersReady', _.partialRight(this.startReadForeve, this));
     }
 
     initWorker(worker) {
         worker.on('message', (message) => {
+            console.log('Worker count when killing ' + this.Cluster.workersCount);
             message == 'done' && worker.kill();
         });
 
@@ -96,6 +98,15 @@ class CMaster {
         self.reader.on('error', (e) => {
             console.log(`Error: ${e}`.red);
         });
+    }
+
+    startReadForeve(self) {
+        let streamNumber = 0;
+        while (1) {
+            console.log(randomstring.generate(7));
+            /*self.STBridges[streamNumber++].push(randomstring.generate(7) + '\n');
+            !(self.Cluster.workersCount - streamNumber) && (streamNumber = 0);*/
+        }
     }
 
     ENDBroadcast() {
